@@ -1,10 +1,60 @@
-/* The Studio: "Pull a proof". Vanilla canvas designer, ~loaded only on #/studio. */
+/* The Studio: "Pull a proof". Vanilla canvas designer, ~loaded only on /studio. */
 (function(){
 'use strict';
 var $=JT.$,$$=JT.$$,B=JT.blanks,C=JT.config,esc=JT.esc,store=JT.store;
 var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 var INKS=[['#141311','Press black'],['#F7F5EF','White'],['#C2301A','Spot red'],['#F2C230','Yellow'],['#24324D','Navy'],['#2E5E3E','Green']];
 var S,hist=[],el,cv,ctx,k=1,pointers={},gest=null,saveT,imgCache={},tab='blank',BG='#E5E0D3',ARROW=JT.ARROW;
+
+/* ---------- uploads live in IndexedDB, not localStorage ----------
+   localStorage holds a few MB and a phone photo is several MB, so only the design (small JSON) goes there.
+   Each upload is stored once in IndexedDB ('nn-studio' > 'uploads') as {orig: the file as uploaded, view: a copy
+   at most 1400px for the canvas, nw, nh, name, type}; image layers carry its id in L.img. The original is what a
+   print file should be made from, and custom cart lines keep the design (with those ids) in line.design. */
+var media={},warned={};
+var IDB=(function(){
+  var dbp;
+  function open(){
+    if(!dbp)dbp=new Promise(function(res,rej){
+      try{var q=indexedDB.open('nn-studio',1)}catch(e){rej(e);return}
+      q.onupgradeneeded=function(){q.result.createObjectStore('uploads')};
+      q.onsuccess=function(){res(q.result)};q.onerror=function(){rej(q.error)};
+    });
+    return dbp;
+  }
+  function run(mode,fn){return open().then(function(db){return new Promise(function(res,rej){
+    var t=db.transaction('uploads',mode),req=fn(t.objectStore('uploads'));
+    t.oncomplete=function(){res(req&&req.result)};t.onerror=t.onabort=function(){rej(t.error)};
+  })})}
+  return {
+    put:function(id,rec){return run('readwrite',function(s){return s.put(rec,id)})},
+    get:function(id){return run('readonly',function(s){return s.get(id)})},
+    keys:function(){return run('readonly',function(s){return s.getAllKeys()})},
+    del:function(ids){return run('readwrite',function(s){ids.forEach(function(id){s.delete(id)})})}
+  };
+})();
+function newId(){return 'up-'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function warnOnce(k,m){if(warned[k])return;warned[k]=1;JT.toast(m);live(m)}
+function imgFor(L){
+  var key=L.img||L.src,im=imgCache[key];
+  if(im)return im;
+  im=imgCache[key]=new Image();im.onload=function(){draw()};
+  if(!L.img){im.src=L.src;return im} // designs saved before uploads moved to IndexedDB
+  (media[key]?Promise.resolve(media[key]):IDB.get(key)).then(function(rec){
+    if(!rec||!rec.view)throw new Error('missing');
+    media[key]=rec;im.src=URL.createObjectURL(rec.view);
+  }).catch(function(){im.missing=true;if(cv){syncLayersSoft()}});
+  return im;
+}
+/* drop stored uploads nothing uses any more: not the design on screen, the saved design, or a cart line */
+function prune(){
+  IDB.keys().then(function(ks){
+    var keep={},mark=function(d){if(d&&d.sides)['front','back'].forEach(function(s){(d.sides[s]||[]).forEach(function(L){if(L.img)keep[L.img]=1})})};
+    if(S)mark(S);mark(store.get('nn_studio',null));(JT.cart||[]).forEach(function(l){mark(l.design)});
+    var gone=ks.filter(function(id){return !keep[id]});
+    if(gone.length)return IDB.del(gone);
+  }).catch(function(){});
+}
 
 function fresh(q){
   var s={blank:B[q.blank]?q.blank:'tee',colour:JT.colours.some(function(c){return c.id===q.colour})?q.colour:'white',side:'front',sides:{front:[],back:[]},sel:0,qty:1,jt:null,proofed:false};
@@ -27,7 +77,7 @@ function changed(noHist){
   if(S.proofed){S.proofed=false;$('.press',el).classList.remove('is-proofed');live('Design changed. Pull a new proof.')}
   save();draw();ticket();
 }
-function save(){clearTimeout(saveT);saveT=setTimeout(function(){var o=JSON.parse(snap());o.jt=S.jt;try{localStorage.setItem('nn_studio',JSON.stringify(o))}catch(e){/* big uploads: skip */}},300)}
+function save(){clearTimeout(saveT);saveT=setTimeout(function(){var o=JSON.parse(snap());o.jt=S.jt;try{localStorage.setItem('nn_studio',JSON.stringify(o))}catch(e){warnOnce('ls','Your design can’t be saved on this device. It stays here until you leave the page.')}},300)}
 function undo(){if(hist.length<2){JT.toast('Nothing to undo');return}hist.pop();var o=JSON.parse(hist[hist.length-1]);S.blank=o.blank;S.colour=o.colour;S.sides=o.sides;S.side=o.side;S.qty=o.qty;S.sel=layers().length?0:null;syncUI();changed(true)}
 
 /* ---------- geometry ---------- */
@@ -68,11 +118,11 @@ function drawLayer(c,L){
   var g=geo(L);c.save();c.translate(g.cx,g.cy);c.rotate(L.r*Math.PI/180);
   if(L.type==='text'){setFont(c,L,g.fs);c.fillStyle=L.col;c.textAlign='center';c.textBaseline='middle';c.fillText(L.text,0,g.fs*.04)}
   else if(L.type==='art'){var a=JT.arts.filter(function(x){return x.id===L.art})[0];c.scale(g.w/100,g.w/100);c.translate(-50,-50);c.fillStyle=L.col;c.fill(new Path2D(a.d),'evenodd')}
-  else if(L.type==='image'){var im=imgCache[L.src];if(!im){im=new Image();im.onload=function(){draw()};im.src=L.src;imgCache[L.src]=im}if(im.complete&&im.naturalWidth)c.drawImage(im,-g.w/2,-g.h/2,g.w,g.h)}
+  else if(L.type==='image'){var im=imgFor(L);if(im.complete&&im.naturalWidth)c.drawImage(im,-g.w/2,-g.h/2,g.w,g.h)}
   c.restore();
 }
 function draw(){if(!cv)return;render(ctx,k,{area:!S.proofed,sel:!S.proofed});}
-function size(){var r=cv.getBoundingClientRect(),d=Math.min(window.devicePixelRatio||1,2),px=Math.round(Math.max(r.width,200)*d);if(cv.width!==px){cv.width=cv.height=px}k=px/400;draw()}
+function size(){if(!cv)return;var r=cv.getBoundingClientRect(),d=Math.min(window.devicePixelRatio||1,2),px=Math.round(Math.max(r.width,200)*d);if(cv.width!==px){cv.width=cv.height=px}k=px/400;draw()}
 function exportURL(px,type){var c=document.createElement('canvas');c.width=c.height=px;var x=c.getContext('2d');render(x,px/400,{area:false,sel:false});return c.toDataURL(type||'image/png',.82)}
 
 /* ---------- pointer: drag, pinch, rotate ---------- */
@@ -102,7 +152,7 @@ function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 /* ---------- actions ---------- */
 function add(L){fit(L);layers().push(L);S.sel=layers().length-1;syncLayers();syncArrange();changed();live('Added '+label(L)+'. Drag it on the '+B[S.blank].name+' or use Arrange.')}
 function del(){var l=layers();if(S.sel==null||!l[S.sel])return;var L=l.splice(S.sel,1)[0];S.sel=l.length?l.length-1:null;syncLayers();syncArrange();changed();live('Removed '+label(L))}
-function label(L){return L.type==='text'?'text "'+L.text+'"':L.type==='art'?(JT.arts.filter(function(a){return a.id===L.art})[0].name+' art'):'uploaded image'}
+function label(L){return L.type==='text'?'text "'+L.text+'"':L.type==='art'?(JT.arts.filter(function(a){return a.id===L.art})[0].name+' art'):'uploaded image'+((imgCache[L.img]||{}).missing?' (gone from this device, upload it again)':'')}
 function live(m){var r=$('#stLive',el);if(r)r.textContent=m}
 
 /* ---------- proof ---------- */
@@ -121,14 +171,14 @@ function pull(){
     $('.press__stamp',el).textContent='Proof · '+S.jt;
     $('#pullBtn',el).disabled=false;$('#pullBtn2',el).disabled=false;
     draw();ticket();save();
-    live('Proof pulled. Job number '+S.jt+'. Price '+JT.fmt(unit()*S.qty)+', sample.');
+    live('Proof pulled. Job number '+S.jt+'. Price '+JT.fmt(unit()*S.qty)+'.');
     if(window.innerWidth<1000){var t=$('#stTicket',el);if(t)t.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'})}
   },RM?30:1150);
 }
 function addCart(){
   var hex=JT.colour(S.colour);
   var c=document.createElement('canvas');c.width=c.height=200;render(c.getContext('2d'),.5,{area:false,sel:false});
-  JT.addToCart({kind:'custom',blank:S.blank,colour:S.colour,qty:S.qty,unit:unit(),name:'Custom '+B[S.blank].name.toLowerCase(),jt:S.jt,thumb:c.toDataURL('image/jpeg',.8),desc:count()+' print element'+(count()>1?'s':'')+(S.sides.back.length&&S.sides.front.length?', front + back':'')});
+  JT.addToCart({kind:'custom',blank:S.blank,colour:S.colour,qty:S.qty,unit:unit(),name:'Custom '+B[S.blank].name.toLowerCase(),jt:S.jt,thumb:c.toDataURL('image/jpeg',.8),design:JSON.parse(snap()),desc:count()+' print element'+(count()>1?'s':'')+(S.sides.back.length&&S.sides.front.length?', front + back':'')});
 }
 
 /* ---------- UI ---------- */
@@ -142,17 +192,17 @@ function shell(){
     '<span class="stamp stamp--big press__stamp" aria-hidden="true">Proof</span>'+
     '<p class="press__hint" id="hint">Drag to move · two fingers to scale and turn</p></div></div>'+
   '<div class="tray"><div class="tabs" role="tablist" aria-label="Studio tools">'+[['blank','Blank'],['text','Text'],['art','Art'],['upload','Upload'],['arrange','Layers']].map(function(t){return '<button role="tab" type="button" id="tab-'+t[0]+'" aria-controls="pn-'+t[0]+'" aria-selected="'+(t[0]===tab)+'" data-t="'+t[0]+'">'+t[1]+'</button>'}).join('')+'</div>'+
-    '<div class="panel" role="tabpanel" id="pn-blank" aria-labelledby="tab-blank"><span class="lbl" id="blL">Product</span><div class="blanks" id="blanks" role="radiogroup" aria-labelledby="blL"></div><span class="lbl" id="bcL">Blank colour: <span id="bcN"></span></span><div class="swatches" id="bcol" role="radiogroup" aria-labelledby="bcL">'+JT.colours.map(function(c){return '<button type="button" class="swatch" role="radio" aria-checked="'+(c.id===S.colour)+'" aria-label="'+c.name+'" data-c="'+c.id+'" style="--c:'+c.hex+'"><i></i></button>'}).join('')+'</div><p class="small" style="margin:0">Your design moves with you: switch product and it lands in the new print area. <span class="tbc">Blanks, colours and sizes TBC</span></p></div>'+
-    '<div class="panel" role="tabpanel" id="pn-text" aria-labelledby="tab-text" hidden><div class="field"><label for="tIn">Text</label><input class="input" id="tIn" maxlength="24" autocomplete="off" placeholder="Type your line"></div><div class="field"><label for="tFont">Font</label><select class="input" id="tFont">'+JT.fonts.map(function(f){return '<option value="'+f.id+'">'+f.name+'</option>'}).join('')+'</select></div><div class="field"><span class="lbl">Ink colour</span>'+inkSw('Text ink colour')+'</div><button class="btn btn--sm" id="tAdd" type="button">+ Add another line</button><p class="small" style="margin:0">Open-licence fonts only. <span class="tbc">Final font set TBC</span></p></div>'+
-    '<div class="panel" role="tabpanel" id="pn-art" aria-labelledby="tab-art" hidden><span class="lbl">Sample art (tap to add)</span><div class="arts">'+JT.arts.map(function(a){return '<button class="art" type="button" data-a="'+a.id+'" aria-label="Add '+a.name+'"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="'+a.d+'" fill="#141311" fill-rule="evenodd"/></svg></button>'}).join('')+'</div><div class="field"><span class="lbl">Ink colour for selected art</span>'+inkSw('Art ink colour')+'</div><p class="small" style="margin:0">Templates for birthdays, churches and businesses will sit here too. <span class="tbc">Art library TBC</span></p></div>'+
-    '<div class="panel" role="tabpanel" id="pn-upload" aria-labelledby="tab-upload" hidden><label class="btn btn--ink" for="up" style="cursor:pointer">Upload an image</label><input class="sr" type="file" id="up" accept="image/png,image/jpeg,image/webp"><p class="small" style="margin:0">PNG with a transparent background prints best. It stays on your device in this mockup. <span class="tbc">Upload rules TBC</span></p><div id="dpi"></div></div>'+
+    '<div class="panel" role="tabpanel" id="pn-blank" aria-labelledby="tab-blank"><span class="lbl" id="blL">Product</span><div class="blanks" id="blanks" role="radiogroup" aria-labelledby="blL"></div><span class="lbl" id="bcL">Blank colour: <span id="bcN"></span></span><div class="swatches" id="bcol" role="radiogroup" aria-labelledby="bcL">'+JT.colours.map(function(c){return '<button type="button" class="swatch" role="radio" aria-checked="'+(c.id===S.colour)+'" aria-label="'+c.name+'" data-c="'+c.id+'" style="--c:'+c.hex+'"><i></i></button>'}).join('')+'</div><p class="small" style="margin:0">Your design moves with you: switch product and it lands in the new print area.</p></div>'+
+    '<div class="panel" role="tabpanel" id="pn-text" aria-labelledby="tab-text" hidden><div class="field"><label for="tIn">Text</label><input class="input" id="tIn" maxlength="24" autocomplete="off" placeholder="Type your line"></div><div class="field"><label for="tFont">Font</label><select class="input" id="tFont">'+JT.fonts.map(function(f){return '<option value="'+f.id+'">'+f.name+'</option>'}).join('')+'</select></div><div class="field"><span class="lbl">Ink colour</span>'+inkSw('Text ink colour')+'</div><button class="btn btn--sm" id="tAdd" type="button">+ Add another line</button><p class="small" style="margin:0">Open-licence fonts only.</p></div>'+
+    '<div class="panel" role="tabpanel" id="pn-art" aria-labelledby="tab-art" hidden><span class="lbl">Art (tap to add)</span><div class="arts">'+JT.arts.map(function(a){return '<button class="art" type="button" data-a="'+a.id+'" aria-label="Add '+a.name+'"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="'+a.d+'" fill="#141311" fill-rule="evenodd"/></svg></button>'}).join('')+'</div><div class="field"><span class="lbl">Ink colour for selected art</span>'+inkSw('Art ink colour')+'</div><p class="small" style="margin:0">Want something else? Upload your own art, or <a data-wa="Hello NO NAME, I need help with artwork for my design." target="_blank" rel="noopener" href="#">ask us on WhatsApp</a>.</p></div>'+
+    '<div class="panel" role="tabpanel" id="pn-upload" aria-labelledby="tab-upload" hidden><label class="btn btn--ink" for="up" style="cursor:pointer">Upload an image</label><input class="sr" type="file" id="up" accept="image/png,image/jpeg,image/webp"><p class="small" style="margin:0">PNG with a transparent background prints best. It stays on your device until you send it to us.</p><div id="dpi"></div></div>'+
     '<div class="panel" role="tabpanel" id="pn-arrange" aria-labelledby="tab-arrange" hidden><span class="lbl" id="lyL">Layers on the '+'<span id="lySide">front</span></span><ul class="layers" id="layers" aria-labelledby="lyL"></ul><div class="field"><label for="aS">Size</label><input class="slider" type="range" id="aS" min="8" max="200" value="40"></div><div class="field"><label for="aR">Rotate</label><input class="slider" type="range" id="aR" min="-180" max="180" value="0"></div><div class="tools"><button class="btn btn--sm" id="aC" type="button">Centre it</button><button class="btn btn--sm" id="aUp" type="button">Bring forward</button></div></div>'+
   '</div>'+
   '<aside class="ticket" id="stTicket" aria-labelledby="tkH"><h2 id="tkH" class="sr">Job ticket</h2><div class="docket"><div class="docket__head"><span>Job Nº</span><strong id="tkNo">'+C.jobPrefix+'____</strong></div><dl class="docket__rows"><div><dt>Item</dt><dd id="tkItem"></dd></div><div><dt>Marks</dt><dd id="tkMarks"></dd></div><div><dt>Proof</dt><dd id="tkProof"></dd></div></dl>'+
     '<div class="docket__foot"><span>Qty</span><div class="stepper stepper--sm" role="group" aria-label="Quantity"><button type="button" data-d="-1" aria-label="One fewer">−</button><output id="tkQ">1</output><button type="button" data-d="1" aria-label="One more">+</button></div></div>'+
     '<div class="ticket__price"><span class="lbl">Live price</span><strong id="tkPrice"></strong></div><p class="small" id="tkBreak" style="margin-top:6px;font-family:var(--sans)"></p></div>'+
     '<button class="btn btn--red btn--block" id="pullBtn" type="button">Pull a proof</button>'+
-    '<div class="ticket__after" id="after" hidden><button class="btn btn--ink btn--block" id="cartB" type="button">Add to cart</button><a class="btn btn--block" id="waB" target="_blank" rel="noopener" href="#"><svg class="i" aria-hidden="true"><use href="#i-chat"/></svg>Send proof on WhatsApp</a><a class="btn btn--sm btn--block" id="dlB" href="#" download>Download proof image</a><p class="small">WhatsApp opens with the job number filled in. Attach the downloaded proof image. <span class="tbc">Shop number TBC</span></p></div>'+
+    '<div class="ticket__after" id="after" hidden><button class="btn btn--ink btn--block" id="cartB" type="button">Add to cart</button><a class="btn btn--block" id="waB" target="_blank" rel="noopener" href="#"><svg class="i" aria-hidden="true"><use href="#i-chat"/></svg>Send proof on WhatsApp</a><a class="btn btn--sm btn--block" id="dlB" href="#" download>Download proof image</a><p class="small">WhatsApp opens with the job number filled in. Attach the downloaded proof image.</p></div>'+
   '</aside></div>'+
   '<div class="pullbar"><span id="pbPrice"></span><button class="btn btn--red" id="pullBtn2" type="button">Pull a proof</button></div>'+
   '<p class="sr" id="stLive" role="status" aria-live="polite"></p></div>';
@@ -196,7 +246,7 @@ function ticket(){
   $('#pullBtn2',el).textContent=hasProof?'Add to cart':$('#pullBtn',el).textContent;
   $('#pullBtn',el).className=hasProof?'btn btn--block':'btn btn--red btn--block';$('#cartB',el).className=hasProof?'btn btn--red btn--block':'btn btn--ink btn--block';
   if(hasProof){
-    $('#waB',el).href=JT.wa('Hello, here is my proof '+S.jt+': '+b.name+' ('+JT.colour(S.colour).name+'), '+n+' print element'+(n>1?'s':'')+', qty '+S.qty+'. Sample price '+JT.fmt(unit()*S.qty)+'. I will attach the proof image. (Sent from mockup site)');
+    $('#waB',el).href=JT.wa('Hello, here is my proof '+S.jt+': '+b.name+' ('+JT.colour(S.colour).name+'), '+n+' print element'+(n>1?'s':'')+', qty '+S.qty+'. Price '+JT.ghs(unit()*S.qty)+'. I will attach the proof image.');
     $('#dlB',el).setAttribute('download','proof-'+S.jt+'.png');
   }
 }
@@ -212,7 +262,25 @@ function bind(){
   $('#tAdd',el).addEventListener('click',function(){add({type:'text',text:'NEW LINE',font:$('#tFont',el).value,col:JT.inkFor(JT.colour(S.colour).hex),u:.5,v:.75,s:.26,r:0});$('#tIn',el).focus();$('#tIn',el).select()});
   $$('[data-ink]',el).forEach(function(g){JT.radioGroup(g,'.swatch',function(b){var L=cur();if(L&&L.type!=='image'){L.col=b.dataset.v;changed()}})});
   $$('[data-a]',el).forEach(function(b){b.addEventListener('click',function(){add({type:'art',art:b.dataset.a,col:JT.inkFor(JT.colour(S.colour).hex)==='#141311'?'#C2301A':'#F2C230',u:.5,v:.78,s:.38,r:0})})});
-  $('#up',el).addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var nw=im.naturalWidth,nh=im.naturalHeight,src=r.result;if(Math.max(nw,nh)>1400){var c=document.createElement('canvas'),sc=1400/Math.max(nw,nh);c.width=nw*sc;c.height=nh*sc;c.getContext('2d').drawImage(im,0,0,c.width,c.height);src=c.toDataURL('image/png')}add({type:'image',src:src,nw:nw,nh:nh,u:.5,v:.5,s:.7,r:0});};im.src=r.result};r.readAsDataURL(f);e.target.value=''});
+  $('#up',el).addEventListener('change',function(e){
+    var f=e.target.files[0];e.target.value='';if(!f)return;
+    var url=URL.createObjectURL(f),im=new Image();
+    im.onerror=function(){URL.revokeObjectURL(url);JT.toast('That file couldn’t be opened as an image.')};
+    im.onload=function(){
+      var nw=im.naturalWidth,nh=im.naturalHeight,id=newId();
+      function done(view){
+        var rec={orig:f,view:view,nw:nw,nh:nh,name:f.name,type:f.type};media[id]=rec;
+        var shown=new Image();shown.onload=function(){draw()};shown.src=view===f?url:URL.createObjectURL(view);imgCache[id]=shown;
+        if(view!==f)URL.revokeObjectURL(url);
+        IDB.put(id,rec).catch(function(){warnOnce('idb','This browser won’t keep your upload after you leave the page, so finish the design in one go.')});
+        add({type:'image',img:id,nw:nw,nh:nh,u:.5,v:.5,s:.7,r:0});
+      }
+      if(Math.max(nw,nh)<=1400){done(f);return}
+      var c=document.createElement('canvas'),sc=1400/Math.max(nw,nh);c.width=Math.round(nw*sc);c.height=Math.round(nh*sc);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      c.toBlob(function(b){done(b||f)},f.type==='image/jpeg'?'image/jpeg':'image/png',.9); // PNG and WebP may be transparent
+    };
+    im.src=url;
+  });
   $('#aS',el).addEventListener('input',function(e){var L=cur();JT.fillSlider(e.target);if(L){L.s=e.target.value/100;draw();dpi()}});$('#aS',el).addEventListener('change',function(){changed()});
   $('#aR',el).addEventListener('input',function(e){var L=cur();JT.fillSlider(e.target);if(L){L.r=+e.target.value;draw()}});$('#aR',el).addEventListener('change',function(){changed()});
   $('#aC',el).addEventListener('click',function(){var L=cur();if(L){L.u=.5;L.v=.5;L.r=0;syncArrange();changed()}});
@@ -232,12 +300,15 @@ JT.studio={
     el=root;hist=[];
     BG=getComputedStyle(document.documentElement).getPropertyValue('--stage').trim()||BG;
     var saved=store.get('nn_studio',null);
-    if(q.blank||q.text||!saved){S=fresh(q)}else{S={blank:saved.blank,colour:saved.colour,side:saved.side||'front',sides:saved.sides,sel:null,qty:saved.qty||1,jt:saved.jt||null,proofed:false};S.sel=layers().length?0:null}
+    if(q.blank||q.text||!saved){S=fresh(q)}else{S={blank:saved.blank,colour:saved.colour,side:saved.side||'front',sides:saved.sides,sel:null,qty:saved.qty||1,jt:saved.jt||null,proofed:false};S.sel=layers().length?0:null;
+      // a link that only names a colour (e.g. "Make one in red") keeps the saved design but switches the blank colour
+      if(JT.colours.some(function(c){return c.id===q.colour}))S.colour=q.colour}
     if(q.text)tab='text';
-    shell();bind();layers().forEach(fit);syncUI();showTab(tab);push();ticket();
+    shell();JT.waLinks();bind();layers().forEach(fit);syncUI();showTab(tab);push();ticket();
     requestAnimationFrame(size);
     if(document.fonts&&document.fonts.load){Promise.all([document.fonts.load('900 40px Archivo'),document.fonts.load('500 20px "Plex Mono"')]).then(function(){draw()},function(){})}
     JT.studio.state=function(){return S};
+    prune();
   },
   unmount:function(){window.removeEventListener('resize',size);cv=null}
 };

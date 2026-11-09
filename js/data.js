@@ -1,12 +1,22 @@
-/* SAMPLE DATA ONLY. Every price, product, job and rate here is a placeholder for the mockup. */
+/* Site data: catalogue, prices and business settings. Edit the values in JT.config to go live. */
 window.JT = window.JT || {};
 JT.config = {
   brand: 'NO NAME',
   jobPrefix: 'NN-',
-  whatsapp: '233000000000',          // placeholder: client WhatsApp number TBC
-  usdRate: 15,                       // sample: 1 USD = 15 GHS, for display only
-  printPerElement: 25,               // sample GHS per print element
-  printBack: 30                      // sample GHS when the back is printed
+  // ---- business details (shown on Contact, footer and every WhatsApp link) ----
+  whatsapp: '233000000000',          // SET ME: WhatsApp number in international format, digits only (e.g. 233241234567)
+  phone: '',                         // optional: phone number to show on Contact, e.g. '024 123 4567'
+  email: '',                         // optional: e.g. 'hello@nonamestudio.com'
+  address: 'Osu, Accra',             // studio / pickup location
+  hours: '',                         // optional: e.g. 'Mon to Sat, 9am to 6pm'
+  instagram: '',                     // optional: handle without @
+  // ---- payments ----
+  paystackKey: '',                   // optional: Paystack PUBLIC key (pk_live_...). Empty = orders are placed on WhatsApp
+  // ---- money ----
+  usdRate: 15,                       // GHS per 1 USD, for the US$ display only (customers always pay in cedis)
+  deliveryFee: 35,                   // GHS, rider delivery
+  printPerElement: 25,               // GHS per print element
+  printBack: 30                      // GHS when the back is printed
 };
 /* blanks: 400x400 artboard. area = print area [x,y,w,h]; inches = printable width for DPI warning;
    floor/fw = ground shadow y and half-width */
@@ -59,7 +69,7 @@ JT.inkFor = function(hex){ // readable ink colour on a blank
   var c=JT.rgb(hex);
   return (c[0]*299+c[1]*587+c[2]*114)/1000 > 140 ? '#141311' : '#F7F5EF';
 };
-/* sample ready-made rail */
+/* ready-made rail */
 JT.products = [
   {id:'plain-tee', blank:'tee', colour:'white', name:'Plain tee, blank', mark:null},
   {id:'name-tee', blank:'tee', colour:'black', name:'Name tee', mark:{t:'AKOSUA',c:'#F2C230'}, extra:25},
@@ -99,7 +109,7 @@ JT.fonts = [
 JT.heroNames = ['AKOSUA','KOFI & AMA','CHOIR ’26','HBD ESI','CLASS OF 26','YAW @ 30','NANA B'];
 JT.heroCols  = ['white','black','red','navy','sand','green','yellow'];
 JT.tickerNames = ['Akosua','Choir ’26','Kofi & Ama','HBD Esi','Class of 2026','Yaw @ 30','Owusu reunion','Save the date','Team Nana','Ewurabena','Adjoa’s 21st','Your name here'];
-/* sample past jobs for the "off the press" wall */
+/* example jobs for the "off the press" wall */
 JT.jobs = [
   {jt:'NN-0391', blank:'tee', colour:'red', mark:{t:'CHOIR ’26',c:'#F7F5EF'}, qty:40, what:'Choir tees', place:'Kumasi'},
   {jt:'NN-0402', blank:'mug', colour:'white', mark:{t:'HBD ESI',c:'#C2301A'}, qty:12, what:'Birthday mugs', place:'Tema'},
@@ -110,13 +120,21 @@ JT.jobs = [
   {jt:'NN-0431', blank:'tee', colour:'green', mark:{t:'OWUSU REUNION',c:'#F7F5EF'}, qty:64, what:'Family reunion tees', place:'Houston'},
   {jt:'NN-0436', blank:'hoodie', colour:'black', mark:{t:'KOFI & AMA',c:'#F7F5EF'}, qty:2, what:'Matching hoodies', place:'Accra'}
 ];
-/* FAQ: <i class="ph"> marks a placeholder value, <span class="tbc"> a client note */
+/* FAQ (home page shows these; /faq shows these plus JT.faqMore) */
 JT.faq = [
   ['Do I see it before you print?', 'Yes. We send a proof on WhatsApp with your job number. Nothing goes to press until you reply OK.'],
-  ['How long does it take?', 'Most jobs are ready <i class="ph">3 to 5 working days</i> after you approve the proof. Rush jobs are possible. <span class="tbc">Turnaround TBC</span>'],
-  ['How do I pay?', 'Mobile Money (MTN, Telecel, AirtelTigo) or card, through Paystack. Bulk orders can pay a deposit first. <span class="tbc">Deposit terms TBC</span>'],
-  ['Do you deliver outside Accra?', 'Riders cover Accra. Other regions go <i class="ph">by courier</i>, and we ship to the diaspora. <span class="tbc">Areas and fees TBC</span>'],
+  ['How long does it take?', 'Most jobs are ready <i class="ph">3 to 5 working days</i> after you approve the proof. Rush jobs are possible.'],
+  ['How do I pay?', 'Mobile Money (MTN, Telecel, AirtelTigo) or card, through Paystack. Bulk orders can pay a deposit first.'],
+  ['Do you deliver outside Accra?', 'Riders cover Accra. Other regions go <i class="ph">by courier</i>, and we ship to the diaspora.'],
   ['What should I upload?', 'A PNG with a transparent background, ideally 2000 pixels wide or more. The Studio tells you if an image is too small to print sharply.'],
-  ['Can I return a custom item?', 'Items printed with your design can’t be returned unless we got it wrong. Plain blanks follow the normal returns policy. <span class="tbc">Policy TBC</span>']
+  ['Can I return a custom item?', 'Items printed with your design can’t be returned unless we got it wrong. Plain blanks follow the normal <a href="/info/returns">returns policy</a>.']
+];
+JT.faqMore = [
+  ['Is there a minimum order?', 'No. One piece is fine. Price breaks start at 25 pieces, and screen printing starts at 25. See <a href="/bulk">bulk orders</a>.'],
+  ['Can you match my logo colours?', 'Send your logo as a PNG, SVG or PDF and tell us the colours. We match as closely as the print method allows and show you on the proof.'],
+  ['Can I print on the back or the sleeve?', 'Yes. Tees and hoodies can be printed front and back in the Studio. Sleeve prints are available on bulk orders.'],
+  ['Can I bring my own item to print on?', 'Message us on WhatsApp with a photo of the item and we will tell you if we can print on it.'],
+  ['How do I track my order?', 'Every order has a job number (it starts with NN-). Enter it on the <a href="/track">Track a job</a> page or ask us on WhatsApp.'],
+  ['Do you print rush jobs?', 'Often, yes. Message us on WhatsApp with the date you need it by before you order.']
 ];
 JT.priceOf = function(p){ return JT.blanks[p.blank].price + (p.extra||0); };

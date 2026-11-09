@@ -3,15 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>NO NAME · Custom print studio, Accra (mockup)</title>
-<meta name="description" content="NO NAME prints your name, team or line on tees, hoodies, caps, mugs, phone cases and totes. Design mockup with sample products and prices.">
-<meta name="robots" content="noindex">
+<title>NO NAME · Custom print studio, Accra</title>
+<meta name="description" content="NO NAME prints your name, team or line on tees, hoodies, caps, mugs, phone cases and totes. Design it online, approve the proof on WhatsApp, pay with MoMo or card.">
 <meta name="theme-color" content="#F2EFE7">
 <meta property="og:type" content="website">
 <meta property="og:title" content="NO NAME · We left our name off">
 <meta property="og:description" content="So there's room for yours. Custom tees, hoodies, caps, mugs, phone cases and totes, printed in Accra.">
+<meta property="og:site_name" content="NO NAME">
+<meta name="twitter:card" content="summary">
 <link rel="stylesheet" href="css/site.css">
-<script>(function(d){d.classList.add("js");/^#\/[a-z0-9]/i.test(location.hash)&&location.hash.indexOf("#/?")<0&&d.classList.add("deep");try{localStorage.getItem("nn_notes")==="true"&&d.classList.add("notes")}catch(e){}setTimeout(function(){if(!window.JT||!JT.ready)d.classList.remove("js","deep")},3000);if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="preload";l.as="font";l.type="font/woff2";l.crossOrigin="";l.href="fonts/archivo.woff2";document.head.appendChild(l)}})(document.documentElement)</script>
+<script>(function(d){d.classList.add("js");var h=location.hash,p=h.indexOf("#/")===0?h.slice(1):location.protocol==="file:"?"/":location.pathname;/^\/[a-z0-9]/i.test(p)&&!/^\/index\.html?$/i.test(p)&&d.classList.add("deep");setTimeout(function(){if(!window.JT||!JT.ready)d.classList.remove("js","deep")},3000);if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="preload";l.as="font";l.type="font/woff2";l.crossOrigin="";l.href="fonts/archivo.woff2";document.head.appendChild(l)}})(document.documentElement)</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23141311'/%3E%3Crect x='4.5' y='9.5' width='23' height='13' rx='1.5' fill='none' stroke='%23F2EFE7' stroke-dasharray='2 1.6'/%3E%3Crect x='10' y='13' width='12' height='6' rx='1' fill='%23D9381E'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -38,22 +39,17 @@
   <symbol id="i-reg" viewBox="0 0 26 26"><circle cx="13" cy="13" r="7" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M13 0v26M0 13h26" stroke="currentColor" stroke-width="1.3"/></symbol>
 </svg>
 
-<div class="strip" role="region" aria-label="Mockup notice">
-  <p><b>Mockup</b><span class="strip__long">Placeholder products, prices and policies. Nothing here is for sale.</span><span class="strip__short">Sample data only</span></p>
-  <button class="strip__notes" id="notesBtn" type="button" aria-pressed="false" title="Highlight everything still to confirm with the client"><span class="sw" aria-hidden="true"></span><span class="strip__long">Client notes</span><span class="strip__short">Notes</span></button>
-</div>
-
 <header class="hdr" id="hdr">
   <div class="wrap hdr__in">
-    <a class="brand" href="#/" aria-label="NO NAME, home"><span class="brand__label">No name</span></a>
+    <a class="brand" href="/" aria-label="NO NAME, home"><span class="brand__label">No name</span></a>
     <nav class="nav" aria-label="Main">
-      <a href="#/shop">Shop</a><a href="#/studio">Studio</a><a href="#/bulk">Bulk orders</a><a href="#/track">Track a job</a>
+      <a href="/shop">Shop</a><a href="/studio">Studio</a><a href="/bulk">Bulk orders</a><a href="/track">Track a job</a>
     </nav>
     <div class="hdr__end">
-      <div class="cur" role="group" aria-label="Currency (sample rate)">
+      <div class="cur" role="group" aria-label="Currency">
         <button type="button" data-cur="GHS" aria-pressed="true">GH₵</button><button type="button" data-cur="USD" aria-pressed="false">US$</button>
       </div>
-      <a class="cartbtn" id="cartBtn" href="#/cart" aria-label="Cart, 0 items"><svg class="i" aria-hidden="true"><use href="#i-bag"/></svg><span class="cartbtn__t">Cart</span><span class="cartbtn__n" id="cartN" aria-hidden="true">0</span></a>
+      <a class="cartbtn" id="cartBtn" href="/cart" aria-label="Cart, 0 items"><svg class="i" aria-hidden="true"><use href="#i-bag"/></svg><span class="cartbtn__t">Cart</span><span class="cartbtn__n" id="cartN" aria-hidden="true">0</span></a>
       <button class="menubtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="menu"><span>Menu</span></button>
     </div>
   </div>
@@ -61,14 +57,17 @@
 
 <div class="menu" id="menu" hidden>
   <nav aria-label="Main (mobile)">
-    <a href="#/">Home <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-    <a href="#/shop">Shop <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-    <a href="#/studio">Studio <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-    <a href="#/bulk">Bulk orders <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-    <a href="#/track">Track a job <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <a href="/">Home <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <a href="/shop">Shop <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <a href="/studio">Studio <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <a href="/bulk">Bulk orders <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <a href="/track">Track a job <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <a href="/faq">FAQ <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <a href="/about">About <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <a href="/contact">Contact <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
   </nav>
   <div class="menu__foot">
-    <div class="cur" role="group" aria-label="Currency (sample rate)">
+    <div class="cur" role="group" aria-label="Currency">
       <button type="button" data-cur="GHS" aria-pressed="true">GH₵</button><button type="button" data-cur="USD" aria-pressed="false">US$</button>
     </div>
     <a class="btn btn--sm" data-wa="Hello NO NAME, I have a question." target="_blank" rel="noopener" href="#"><svg class="i" aria-hidden="true"><use href="#i-chat"/></svg>WhatsApp us</a>
@@ -112,7 +111,7 @@
       <ul class="hero__facts">
         <li>Proof on WhatsApp before we print</li>
         <li>MoMo or card</li>
-        <li>Accra delivery, ships abroad <span class="tbc">TBC</span></li>
+        <li>Accra delivery, ships abroad</li>
       </ul>
     </div>
   </section>
@@ -123,7 +122,7 @@
     <div class="wrap">
       <header class="sechead" data-reveal>
         <div><p class="eyebrow"><span class="eyebrow__no">01</span>Start from a blank</p><h2 id="h-blanks" class="h2">Pick your canvas.</h2></div>
-        <p class="sechead__aside">Six blanks in seven colours. Pick one and it opens in the Studio, ready for your mark. <span class="tbc">Range TBC</span></p>
+        <p class="sechead__aside">Six blanks in seven colours. Pick one and it opens in the Studio, ready for your mark.</p>
       </header>
       <div class="bento" id="bento"></div>
     </div>
@@ -155,9 +154,9 @@
         <ol class="steps">
           <li class="step" data-step="0"><span class="step__n" aria-hidden="true">00</span><h3 class="h3">Pick a blank</h3><p>Tee, hoodie, cap, mug, phone case or tote, in seven colours. Sizes S to XXL on apparel.</p><p class="step__tags"><span>6 blanks</span><span>7 colours</span></p></li>
           <li class="step" data-step="1"><span class="step__n" aria-hidden="true">01</span><h3 class="h3">Put your mark on it</h3><p>Type a name, add art or upload a logo in the Studio. It warns you if an image is too small to print sharply.</p><p class="step__tags"><span>Text</span><span>Art</span><span>Upload</span></p></li>
-          <li class="step" data-step="2"><span class="step__n" aria-hidden="true">02</span><h3 class="h3">Say OK to the proof</h3><p>We send the proof on WhatsApp with your job number. Reply OK or ask for changes. Nothing goes to press without your OK. <span class="tbc">Process TBC</span></p><p class="step__tags"><span>Same job number</span><span>Unlimited changes</span></p></li>
+          <li class="step" data-step="2"><span class="step__n" aria-hidden="true">02</span><h3 class="h3">Say OK to the proof</h3><p>We send the proof on WhatsApp with your job number. Reply OK or ask for changes. Nothing goes to press without your OK.</p><p class="step__tags"><span>Same job number</span><span>Unlimited changes</span></p></li>
           <li class="step" data-step="3"><span class="step__n" aria-hidden="true">03</span><h3 class="h3">We press it</h3><p>DTF, screen, vinyl, sublimation or embroidery, picked for the item and the size of the run.</p><p class="step__tags"><span>Checked before packing</span></p></li>
-          <li class="step" data-step="4"><span class="step__n" aria-hidden="true">04</span><h3 class="h3">Out the door</h3><p>Rider delivery in Accra, pickup, or courier to the rest of Ghana and the diaspora. Track it with your job number. <span class="tbc">Areas TBC</span></p><p class="step__tags"><span>Delivery</span><span>Pickup</span><span>Tracking</span></p></li>
+          <li class="step" data-step="4"><span class="step__n" aria-hidden="true">04</span><h3 class="h3">Out the door</h3><p>Rider delivery in Accra, pickup, or courier to the rest of Ghana and the diaspora. Track it with your job number.</p><p class="step__tags"><span>Delivery</span><span>Pickup</span><span>Tracking</span></p></li>
         </ol>
       </div>
     </div>
@@ -169,7 +168,7 @@
         <div><p class="eyebrow"><span class="eyebrow__no">03</span>Off the rail</p><h2 id="h-rail" class="h2">Ready when you are.</h2></div>
         <div class="sechead__aside">
           <p>Ready-made pieces and plain blanks. Every one opens in the Studio if you want to change it.</p>
-          <div class="railnav"><button class="iconbtn" id="railPrev" type="button" aria-label="Scroll the rail back"><svg class="i" aria-hidden="true"><use href="#i-left"/></svg></button><button class="iconbtn" id="railNext" type="button" aria-label="Scroll the rail forward"><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></button><a class="link" href="#/shop">Shop all</a></div>
+          <div class="railnav"><button class="iconbtn" id="railPrev" type="button" aria-label="Scroll the rail back"><svg class="i" aria-hidden="true"><use href="#i-left"/></svg></button><button class="iconbtn" id="railNext" type="button" aria-label="Scroll the rail forward"><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></button><a class="link" href="/shop">Shop all</a></div>
         </div>
       </header>
     </div>
@@ -182,7 +181,7 @@
     <div class="wrap">
       <header class="sechead" data-reveal>
         <div><p class="eyebrow"><span class="eyebrow__no">04</span>Off the press</p><h2 id="h-wall" class="h2">Other people's names.</h2></div>
-        <p class="sechead__aside">A few recent jobs, from one phone case to a hundred and fifty wedding totes. <span class="tbc">Sample jobs</span></p>
+        <p class="sechead__aside">The kind of jobs we print, from one phone case to a hundred and fifty wedding totes. <a class="link" href="/studio">Start yours</a></p>
       </header>
       <div class="wall" id="wall"></div>
     </div>
@@ -192,7 +191,7 @@
     <div class="wrap">
       <header class="sechead" data-reveal>
         <div><p class="eyebrow"><span class="eyebrow__no">05</span>Press</p><h2 id="h-inks" class="h2">Five ways to put ink on it.</h2></div>
-        <p class="sechead__aside">You don't have to choose. We pick the method that suits the item and the run, and tell you on the proof. <span class="tbc">Methods offered TBC</span></p>
+        <p class="sechead__aside">You don't have to choose. We pick the method that suits the item and the run, and tell you on the proof.</p>
       </header>
       <div class="inks" id="inks" role="list" data-reveal></div>
     </div>
@@ -204,6 +203,7 @@
         <p class="eyebrow"><span class="eyebrow__no">06</span>Questions</p>
         <h2 id="h-faq" class="h2">Good to know.</h2>
         <dl class="faq__list" id="faq"></dl>
+        <p style="margin-top:20px"><a class="link" href="/faq">All questions</a></p>
       </div>
       <aside class="faq__side" data-reveal>
         <form class="card trackcard" id="homeTrack">
@@ -214,7 +214,7 @@
         <a class="card wacard" data-wa="Hello NO NAME, I have a question." target="_blank" rel="noopener" href="#">
           <svg class="i wacard__i" aria-hidden="true"><use href="#i-chat"/></svg>
           <span class="wacard__t">Rather talk to a person?</span>
-          <span class="small">Message us on WhatsApp. A real person replies, usually within the hour. <span class="tbc">Hours TBC</span></span>
+          <span class="small">Message us on WhatsApp. A real person replies.</span>
         </a>
       </aside>
     </div>
@@ -225,8 +225,8 @@
       <div data-reveal>
         <p class="eyebrow eyebrow--inv"><span class="eyebrow__no">07</span>Bulk &amp; corporate</p>
         <h2 id="h-bulk" class="h2">Forty choir tees? Two hundred staff hoodies?</h2>
-        <p class="bulkband__p">Schools, churches, events, teams and companies. Price breaks from 25 pieces and one job number for the whole run. <span class="tbc">Minimums TBC</span></p>
-        <a class="btn btn--red" href="#/bulk">Price a bulk order <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <p class="bulkband__p">Schools, churches, events, teams and companies. Price breaks from 25 pieces and one job number for the whole run.</p>
+        <a class="btn btn--red" href="/bulk">Price a bulk order <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </div>
       <div class="bulkband__stack" id="bulkStack" aria-hidden="true"></div>
     </div>
@@ -241,6 +241,8 @@
 <div class="view" data-view="track" hidden></div>
 <div class="view" data-view="bulk" hidden></div>
 <div class="view" data-view="info" hidden></div>
+<div class="view" data-view="contact" hidden></div>
+<div class="view" data-view="faq" hidden></div>
 <div class="view" data-view="notfound" hidden></div>
 </main>
 
@@ -251,12 +253,12 @@
         <span class="brand__label brand__label--inv">No name</span>
         <p>Custom apparel, gifts and accessories, printed in <i class="ph">Accra</i>. We left our name off so yours fits.</p>
       </div>
-      <nav aria-label="Shop"><h3>Shop</h3><ul><li><a href="#/shop">Everything</a></li><li><a href="#/shop?c=apparel">Apparel</a></li><li><a href="#/shop?c=gifts">Gifts</a></li><li><a href="#/shop?c=accessories">Accessories</a></li></ul></nav>
-      <nav aria-label="Make"><h3>Make</h3><ul><li><a href="#/studio">Studio</a></li><li><a href="#/bulk">Bulk orders</a></li><li><a href="#/track">Track a job</a></li><li><a data-wa="Hello NO NAME, I have a question." target="_blank" rel="noopener" href="#">WhatsApp</a></li></ul></nav>
-      <nav aria-label="Help"><h3>Help</h3><ul><li><a href="#/info/delivery">Delivery</a></li><li><a href="#/info/returns">Returns</a></li><li><a href="#/info/privacy">Privacy</a></li><li><a href="#/info/terms">Terms</a></li></ul></nav>
+      <nav aria-label="Shop"><h3>Shop</h3><ul><li><a href="/shop">Everything</a></li><li><a href="/shop?c=apparel">Apparel</a></li><li><a href="/shop?c=gifts">Gifts</a></li><li><a href="/shop?c=accessories">Accessories</a></li></ul></nav>
+      <nav aria-label="Make"><h3>Make</h3><ul><li><a href="/studio">Studio</a></li><li><a href="/bulk">Bulk orders</a></li><li><a href="/track">Track a job</a></li><li><a href="/about">About us</a></li></ul></nav>
+      <nav aria-label="Help"><h3>Help</h3><ul><li><a href="/faq">FAQ</a></li><li><a href="/contact">Contact</a></li><li><a href="/info/delivery">Delivery</a></li><li><a href="/info/returns">Returns</a></li><li><a data-wa="Hello NO NAME, I have a question." target="_blank" rel="noopener" href="#">WhatsApp</a></li></ul></nav>
     </div>
     <p class="foot__mark" aria-hidden="true">No name</p>
-    <div class="foot__bot"><span>© 2026 NO NAME · Mockup v2 · sample data</span><span>Payments shown are a mock. No money moves.</span></div>
+    <div class="foot__bot"><span>© <span id="yr">2026</span> NO NAME · Custom print studio, Accra</span><span class="foot__legal"><a href="/info/privacy">Privacy</a> · <a href="/info/terms">Terms</a></span></div>
   </div>
 </footer>
 
